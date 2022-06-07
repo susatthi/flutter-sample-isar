@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "app-debug",
+      "program": "lib/main.dart",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--debug",
+      ]
+    }
+  ]
+}
