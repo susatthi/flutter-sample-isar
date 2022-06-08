@@ -57,7 +57,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
           final memo = _memos[index];
           final category = memo.category.value;
           return ListTile(
-            // タップされたら更新ダイアログを表示する
+            // タップされたらメモ更新ダイアログを表示する
             onTap: () => showDialog<void>(
               context: context,
               builder: (context) => MemoUpsertDialog(
@@ -68,7 +68,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
             ),
             title: Text(memo.content),
             subtitle: Text(category?.name ?? ''),
-            // 削除ボタン押下されたら即削除する
+            // 削除ボタン押下されたらメモを即削除する
             trailing: IconButton(
               onPressed: () => widget.memoRepository.deleteMemo(memo),
               icon: const Icon(Icons.close),
@@ -78,7 +78,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
         itemCount: _memos.length,
       ),
       floatingActionButton: FloatingActionButton(
-        // 追加ダイアログを表示する
+        // メモ追加ダイアログを表示する
         onPressed: () => showDialog<void>(
           context: context,
           builder: (context) => MemoUpsertDialog(widget.memoRepository),
@@ -90,7 +90,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
   }
 }
 
-/// メモ追加/更新ダイアログ
+/// メモ登録/更新ダイアログ
 class MemoUpsertDialog extends StatefulWidget {
   const MemoUpsertDialog(
     this.memoRepository, {
@@ -101,7 +101,7 @@ class MemoUpsertDialog extends StatefulWidget {
   /// メモリポジトリ
   final MemoRepository memoRepository;
 
-  /// 更新するメモ（新規登録時はnull）
+  /// 更新するメモ（登録時はnull）
   final Memo? memo;
 
   @override
@@ -115,7 +115,7 @@ class __MemoUpsertDialogState extends State<MemoUpsertDialog> {
   /// 選択中のカテゴリ
   Category? _selectedCategory;
 
-  /// メモコンテンツ
+  /// 入力中のメモコンテンツ
   final _textController = TextEditingController();
 
   @override
@@ -165,6 +165,7 @@ class __MemoUpsertDialogState extends State<MemoUpsertDialog> {
             TextField(
               controller: _textController,
               onChanged: (_) {
+                // 「保存」ボタンの活性化/非活性化を更新するために画面更新する
                 setState(() {});
               },
             ),

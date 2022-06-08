@@ -7,7 +7,7 @@ import 'collections/memo.dart';
 
 /// メモリポジトリ
 ///
-/// メモに関する操作をになう
+/// メモに関する操作はこのクラスを経由して行う
 class MemoRepository {
   MemoRepository(this.isar) {
     Future(() async {
@@ -28,7 +28,7 @@ class MemoRepository {
   }
 
   /// Isarインスタンス
-  Isar isar;
+  final Isar isar;
 
   /// メモ一覧を監視したい場合はmemoStreamをlistenしてもらう
   final _memoStreamController = StreamController<List<Memo>>();
@@ -49,6 +49,8 @@ class MemoRepository {
   Future<List<Memo>> findMemos() async {
     // 更新日時の降順で全件返す
     final memos = await isar.memos.where().sortByUpdatedAtDesc().findAll();
+
+    // IsarLinkでリンクされているカテゴリを読み込む必要がある
     for (final memo in memos) {
       await memo.category.load();
     }
@@ -68,6 +70,8 @@ class MemoRepository {
       ..updatedAt = now;
     return isar.writeTxn((isar) async {
       await isar.memos.put(memo);
+
+      // IsarLinkでリンクされているカテゴリを保存する必要がある
       await memo.category.save();
     });
   }
@@ -85,6 +89,8 @@ class MemoRepository {
       ..updatedAt = now;
     return isar.writeTxn((isar) async {
       await isar.memos.put(memo);
+
+      // IsarLinkでリンクされているカテゴリを保存する必要がある
       await memo.category.save();
     });
   }
