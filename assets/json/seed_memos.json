@@ -1,38 +1,38 @@
 [
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ001"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ002"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ003"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ004"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ005"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ006"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ007"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ008"
   },
   {
-    "categoryId": 1,
+    "categoryName": "仕事",
     "content": "メモ009"
   }
 ]

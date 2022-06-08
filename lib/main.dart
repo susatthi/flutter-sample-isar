@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -22,9 +24,68 @@ Future<void> main() async {
     directory: dir.path,
     inspector: true,
   );
-  final memoRepository = MemoRepository(isar);
+
+  // 初期データ書き込み
+  await _writeSeedIfNeed(
+    isar,
+    force: true,
+  );
 
   runApp(
-    App(memoRepository: memoRepository),
+    App(memoRepository: MemoRepository(isar)),
   );
+}
+
+/// 必要なら初期データを書き込む
+Future<void> _writeSeedIfNeed(Isar isar, {bool force = false}) async {
+  if (force) {
+    // 強制的にデータを全削除する
+    await isar.writeTxn((isar) async {
+      final categories = await isar.categorys.where().findAll();
+      await isar.categorys.deleteAll(categories.map((e) => e.id).toList());
+      final memos = await isar.memos.where().findAll();
+      await isar.memos.deleteAll(memos.map((e) => e.id).toList());
+    });
+  }
+
+  // データがあれば何もしない
+  if (await isar.categorys.count() > 0) {
+    return;
+  }
+
+  // 初期データを書き込む
+  await isar.writeTxn((isar) async {
+    // カテゴリの初期データ
+    await isar.categorys.putAll(
+      ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
+    );
+    final categories = await isar.categorys.where().findAll();
+
+    // メモの初期データはJSONから取ってくる
+    final bytes = await rootBundle.load('assets/json/seed_memos.json');
+    final jsonString = const Utf8Decoder().convert(bytes.buffer.asUint8List());
+    final jsonArray = json.decode(jsonString) as List;
+
+    final memos = <Memo>[];
+    for (final jsonMap in jsonArray) {
+      if (jsonMap is Map<String, dynamic>) {
+        final now = DateTime.now();
+        memos.add(
+          Memo()
+            ..category.value = categories.firstWhere(
+              (category) => category.name == jsonMap['categoryName'] as String,
+            )
+            ..content = jsonMap['content'] as String
+            ..createdAt = now
+            ..updatedAt = now,
+        );
+      }
+    }
+
+    await isar.memos.putAll(memos);
+    final saveCategories = memos.map((memo) => memo.category).toList();
+    for (final saveCategory in saveCategories) {
+      await saveCategory.save();
+    }
+  });
 }
