@@ -19,5 +19,6 @@ class Memo {
   late DateTime createdAt;
 
   /// 更新日時
+  @Index()
   late DateTime updatedAt;
 }

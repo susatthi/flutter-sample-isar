@@ -15,12 +15,16 @@ extension GetMemoCollection on Isar {
 const MemoSchema = CollectionSchema(
   name: 'Memo',
   schema:
-      '{"name":"Memo","idName":"id","properties":[{"name":"content","type":"String"},{"name":"createdAt","type":"Long"},{"name":"updatedAt","type":"Long"}],"indexes":[],"links":[{"name":"category","target":"Category"}]}',
+      '{"name":"Memo","idName":"id","properties":[{"name":"content","type":"String"},{"name":"createdAt","type":"Long"},{"name":"updatedAt","type":"Long"}],"indexes":[{"name":"updatedAt","unique":false,"replace":false,"properties":[{"name":"updatedAt","type":"Value","caseSensitive":false}]}],"links":[{"name":"category","target":"Category"}]}',
   idName: 'id',
   propertyIds: {'content': 0, 'createdAt': 1, 'updatedAt': 2},
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'updatedAt': 0},
+  indexValueTypes: {
+    'updatedAt': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {'category': 0},
   backlinkLinkNames: {},
   getId: _memoGetId,
@@ -166,6 +170,11 @@ extension MemoQueryWhereSort on QueryBuilder<Memo, Memo, QWhere> {
   QueryBuilder<Memo, Memo, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Memo, Memo, QAfterWhere> anyUpdatedAt() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'updatedAt'));
+  }
 }
 
 extension MemoQueryWhere on QueryBuilder<Memo, Memo, QWhereClause> {
@@ -218,6 +227,76 @@ extension MemoQueryWhere on QueryBuilder<Memo, Memo, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Memo, Memo, QAfterWhereClause> updatedAtEqualTo(
+      DateTime updatedAt) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'updatedAt',
+      value: [updatedAt],
+    ));
+  }
+
+  QueryBuilder<Memo, Memo, QAfterWhereClause> updatedAtNotEqualTo(
+      DateTime updatedAt) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'updatedAt',
+        upper: [updatedAt],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'updatedAt',
+        lower: [updatedAt],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'updatedAt',
+        lower: [updatedAt],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'updatedAt',
+        upper: [updatedAt],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Memo, Memo, QAfterWhereClause> updatedAtGreaterThan(
+    DateTime updatedAt, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'updatedAt',
+      lower: [updatedAt],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Memo, Memo, QAfterWhereClause> updatedAtLessThan(
+    DateTime updatedAt, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'updatedAt',
+      upper: [updatedAt],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Memo, Memo, QAfterWhereClause> updatedAtBetween(
+    DateTime lowerUpdatedAt,
+    DateTime upperUpdatedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'updatedAt',
+      lower: [lowerUpdatedAt],
+      includeLower: includeLower,
+      upper: [upperUpdatedAt],
       includeUpper: includeUpper,
     ));
   }
