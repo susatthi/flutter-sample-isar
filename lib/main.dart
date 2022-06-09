@@ -26,9 +26,10 @@ Future<void> main() async {
   );
 
   // 初期データ書き込み
+  // forceプロパティをtrueにすると既存データを全削除して初期データを書き込み直す
   await _writeSeedIfNeed(
     isar,
-    force: true,
+    // force: true,
   );
 
   runApp(
@@ -37,7 +38,10 @@ Future<void> main() async {
 }
 
 /// 必要なら初期データを書き込む
-Future<void> _writeSeedIfNeed(Isar isar, {bool force = false}) async {
+Future<void> _writeSeedIfNeed(
+  Isar isar, {
+  bool force = false,
+}) async {
   if (force) {
     // 強制的にデータを全削除する
     await isar.writeTxn((isar) async {
