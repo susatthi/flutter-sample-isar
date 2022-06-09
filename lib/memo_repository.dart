@@ -20,7 +20,7 @@ class MemoRepository {
   final Isar isar;
 
   /// メモ一覧を監視したい場合はmemoStreamをlistenしてもらう
-  final _memoStreamController = StreamController<List<Memo>>();
+  final _memoStreamController = StreamController<List<Memo>>.broadcast();
   Stream<List<Memo>> get memoStream => _memoStreamController.stream;
 
   /// 終了処理

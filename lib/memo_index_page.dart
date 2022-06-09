@@ -17,12 +17,13 @@ class MemoIndexPage extends StatefulWidget {
   final MemoRepository memoRepository;
 
   @override
-  State<MemoIndexPage> createState() => _MemoIndexPageState();
+  State<MemoIndexPage> createState() => MemoIndexPageState();
 }
 
-class _MemoIndexPageState extends State<MemoIndexPage> {
+@visibleForTesting
+class MemoIndexPageState extends State<MemoIndexPage> {
   /// 表示するメモ一覧
-  final _memos = <Memo>[];
+  final memos = <Memo>[];
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
   /// メモ一覧画面を更新する
   void _refresh(List<Memo> memos) {
     setState(() {
-      _memos
+      this.memos
         ..clear()
         ..addAll(memos);
     });
@@ -54,7 +55,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
       ),
       body: ListView.builder(
         itemBuilder: (context, index) {
-          final memo = _memos[index];
+          final memo = memos[index];
           final category = memo.category.value;
           return ListTile(
             // タップされたらメモ更新ダイアログを表示する
@@ -75,7 +76,7 @@ class _MemoIndexPageState extends State<MemoIndexPage> {
             ),
           );
         },
-        itemCount: _memos.length,
+        itemCount: memos.length,
       ),
       floatingActionButton: FloatingActionButton(
         // メモ追加ダイアログを表示する
@@ -105,18 +106,21 @@ class MemoUpsertDialog extends StatefulWidget {
   final Memo? memo;
 
   @override
-  State<MemoUpsertDialog> createState() => __MemoUpsertDialogState();
+  State<MemoUpsertDialog> createState() => MemoUpsertDialogState();
 }
 
-class __MemoUpsertDialogState extends State<MemoUpsertDialog> {
+@visibleForTesting
+class MemoUpsertDialogState extends State<MemoUpsertDialog> {
   /// 表示するカテゴリ一覧
   final categories = <Category>[];
 
   /// 選択中のカテゴリ
   Category? _selectedCategory;
+  Category? get selectedCategory => _selectedCategory;
 
   /// 入力中のメモコンテンツ
   final _textController = TextEditingController();
+  String get content => _textController.text;
 
   @override
   void initState() {
@@ -179,21 +183,21 @@ class __MemoUpsertDialogState extends State<MemoUpsertDialog> {
         ),
         TextButton(
           // 入力中のメモコンテンツが1文字以上あるときだけ「保存」ボタンを活性化する
-          onPressed: _textController.text.isNotEmpty
+          onPressed: content.isNotEmpty
               ? () async {
                   final memo = widget.memo;
                   if (memo == null) {
                     // 登録処理
                     await widget.memoRepository.addMemo(
                       category: _selectedCategory!,
-                      content: _textController.text,
+                      content: content,
                     );
                   } else {
                     // 更新処理
                     await widget.memoRepository.updateMemo(
                       memo: memo,
                       category: _selectedCategory!,
-                      content: _textController.text,
+                      content: content,
                     );
                   }
                   if (mounted) {

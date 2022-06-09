@@ -46,5 +46,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Test related
+/coverage/
+
+# Fvm related (ローカルパスのシンボリックリンクなのでコミットは不適切)
 .fvm/flutter_sdk
+
+# VSCode related (SDKのパスなど人によって異なるためコミットは不適切)
 .vscode/settings.json
