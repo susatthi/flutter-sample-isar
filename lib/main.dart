@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
@@ -14,14 +15,20 @@ import 'memo_repository.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  /// メモリポジトリの初期化
-  final dir = await getApplicationSupportDirectory();
+  // メモリポジトリの初期化
+  // path_provider は Web に非対応
+  var path = '';
+  if (!foundation.kIsWeb) {
+    final dir = await getApplicationSupportDirectory();
+    path = dir.path;
+  }
+
   final isar = await Isar.open(
     schemas: [
       CategorySchema,
       MemoSchema,
     ],
-    directory: dir.path,
+    directory: path,
     inspector: true,
   );
 
