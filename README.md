@@ -1,4 +1,8 @@
-# flutter_sample_isar
+[![Flutter CI](https://github.com/susatthi/flutter-sample-isar/actions/workflows/flutter_ci.yaml/badge.svg)](https://github.com/susatthi/flutter-sample-isar/actions/workflows/flutter_ci.yaml)
+[![codecov](https://codecov.io/gh/susatthi/flutter-sample-isar/branch/main/graph/badge.svg?token=ZGF5SOBBSM)](https://codecov.io/gh/susatthi/flutter-sample-isar)
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-purple" alt="MIT"></a>
+
+# Isar Database サンプルアプリ
 
 [Isar Database](https://pub.dev/packages/isar) のサンプルのメモアプリ
 
@@ -18,3 +22,9 @@
 - JSON ファイルの初期データ（ Seed ）を DB に書き込み
 - 単体テスト／ Widget テストを実装
 - GitHub Actions の CI による自動テスト
+- サポートするプラットフォーム
+  - iOS / Android / Web / macOS / Windows
+
+## ライセンス
+
+MIT
