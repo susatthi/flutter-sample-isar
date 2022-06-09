@@ -24,6 +24,9 @@
 - GitHub Actions の CI による自動テスト
 - サポートするプラットフォーム
   - iOS / Android / Web / macOS / Windows
+- アーキテクチャ
+  - 簡易的なリポジトリパターン（ Widget => Reposiory => Isar ）
+  - Isar のサンプルとしてぶれないように Riverpod などの状態管理パッケージはあえて未使用
 
 ## ライセンス
 
