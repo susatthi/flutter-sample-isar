@@ -2,28 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sample_isar/collections/category.dart';
 import 'package:flutter_sample_isar/collections/memo.dart';
 import 'package:flutter_sample_isar/memo_index_page.dart';
-import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_utils/test_agent.dart';
 
+class _MockApp extends StatelessWidget {
+  const _MockApp({
+    required this.agent,
+  });
+
+  final TestAgent agent;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MemoIndexPage(
+        memoRepository: agent.memoRepository,
+      ),
+    );
+  }
+}
+
 void main() {
   final agent = TestAgent();
-  late MemoRepository repository;
   late Widget mockApp;
 
   setUp(() async {
     await agent.setUp();
-    repository = MemoRepository(agent.isarTestAgent.isar);
-    mockApp = MaterialApp(
-      home: MemoIndexPage(
-        memoRepository: repository,
-      ),
-    );
+    mockApp = _MockApp(agent: agent);
   });
 
   tearDown(() async {
-    repository.dispose();
     await agent.tearDown();
   });
 
@@ -57,7 +66,6 @@ void main() {
         // メモが1件になっているはず
         final state =
             tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
-
         expect(state.memos.length, 1);
 
         // メモの値が期待したとおりの値のはず
@@ -69,10 +77,8 @@ void main() {
         await tester.tap(find.byIcon(Icons.close));
         await tester.pumpAndSettle();
 
-        // ストリームを受信するまで遅延させる
-        await state.widget.memoRepository.memoStream.firstWhere(
-          (memos) => memos.isEmpty,
-        );
+        // メモが更新されるまで待つ
+        await agent.memoRepository.memoStream.first;
 
         // メモが0件になっているはず
         expect(state.memos.length, 0);
@@ -82,11 +88,8 @@ void main() {
       await tester.runAsync(() async {
         await tester.pumpWidget(mockApp);
 
-        final state =
-            tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
-
         // メモを3件登録する
-        final categories = await repository.findCategories();
+        final categories = await agent.memoRepository.findCategories();
         for (var i = 0; i < 3; i++) {
           await _addMemo(
             tester,
@@ -96,6 +99,8 @@ void main() {
         }
 
         // メモが3件になっているはず
+        final state =
+            tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
         expect(state.memos.length, 3);
 
         // 更新日時の降順で並んでいるはず
@@ -133,7 +138,8 @@ void main() {
         );
       });
     });
-
+  });
+  group('MemoUpsertDialog', () {
     testWidgets('メモ追加ダイアログを表示してキャンセルできるはず', (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(mockApp);
@@ -182,6 +188,10 @@ Future<void> _addMemo(
   final dialogState =
       tester.state(find.byType(MemoUpsertDialog)) as MemoUpsertDialogState;
 
+  // 現在のメモ数を控えておく
+  final memoRepository = dialogState.widget.memoRepository;
+  final firstMemos = await memoRepository.findMemos();
+
   // カテゴリが読み込まれるまで待つ
   await Future.doWhile(() async {
     await Future<void>.delayed(Duration.zero);
@@ -207,15 +217,18 @@ Future<void> _addMemo(
   await tester.tap(find.text('保存'));
   await tester.pumpAndSettle();
 
-  // ストリームを受信するまで遅延させる
-  final memos = await dialogState.widget.memoRepository.memoStream.firstWhere(
-    (memos) => memos.isNotEmpty,
-  );
+  // メモ一覧が更新されるまで待つ
+  final secondMemos = await memoRepository.memoStream.first;
 
-  final memo = memos.first;
+  // メモ数が1増えているはず
+  expect(firstMemos.length + 1, secondMemos.length);
+
+  // 1番目にメモが登録されているはず
+  final memo = secondMemos.first;
   expect(memo.category.value?.name, categoryName);
   expect(memo.content, content);
 
+  // ダイアログが閉じるまで待つ
   await tester.pumpAndSettle();
 
   // メモ追加ダイアログが閉じているはず
@@ -239,6 +252,10 @@ Future<void> _updateMemo(
   final dialogState =
       tester.state(find.byType(MemoUpsertDialog)) as MemoUpsertDialogState;
 
+  // 現在のメモ数を控えておく
+  final memoRepository = dialogState.widget.memoRepository;
+  final firstMemos = await memoRepository.findMemos();
+
   // カテゴリが読み込まれるまで待つ
   await Future.doWhile(() async {
     await Future<void>.delayed(Duration.zero);
@@ -264,15 +281,18 @@ Future<void> _updateMemo(
   await tester.tap(find.text('保存'));
   await tester.pumpAndSettle();
 
-  // ストリームを受信するまで遅延させる
-  final memos = await dialogState.widget.memoRepository.memoStream.firstWhere(
-    (memos) => memos.isNotEmpty,
-  );
+  // メモ一覧が更新されるまで待つ
+  final secondMemos = await memoRepository.memoStream.first;
 
-  final updatedMemo = memos.first;
+  // メモ数は同じはず
+  expect(firstMemos.length, secondMemos.length);
+
+  // 更新したメモが1番目にきているはず
+  final updatedMemo = secondMemos.first;
   expect(updatedMemo.category.value?.name, categoryName);
   expect(updatedMemo.content, content);
 
+  // ダイアログが閉じるまで待つ
   await tester.pumpAndSettle();
 
   // メモ追加ダイアログが閉じているはず

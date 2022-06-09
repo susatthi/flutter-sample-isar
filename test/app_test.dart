@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sample_isar/app.dart';
 import 'package:flutter_sample_isar/memo_index_page.dart';
-import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_utils/test_agent.dart';
 
 void main() {
   final agent = TestAgent();
-  late MemoRepository repository;
   late Widget app;
 
   setUp(() async {
     await agent.setUp();
-    repository = MemoRepository(agent.isarTestAgent.isar);
     app = App(
-      memoRepository: repository,
+      memoRepository: agent.memoRepository,
     );
   });
 
-  tearDown(() async {
-    repository.dispose();
-    await agent.tearDown();
-  });
+  tearDown(agent.tearDown);
 
   group('App', () {
     testWidgets('表示するとメモ一覧画面が表示されるはず', (tester) async {

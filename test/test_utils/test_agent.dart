@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter_sample_isar/collections/category.dart';
 import 'package:flutter_sample_isar/collections/memo.dart';
+import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 // ignore: unused_import
@@ -14,15 +15,22 @@ import 'package:path/path.dart' as path;
 /// テストエージェント
 class TestAgent {
   final isarTestAgent = IsarTestAgent();
+  late MemoRepository memoRepository;
 
+  /// 開始処理
   Future<void> setUp() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
     // Isarテストエージェントのセットアップ
     await isarTestAgent.setUp();
+
+    // メモリポジトリの生成
+    memoRepository = MemoRepository(isarTestAgent.isar);
   }
 
+  /// 終了処理
   Future<void> tearDown() async {
+    memoRepository.dispose();
     await isarTestAgent.tearDown();
   }
 }

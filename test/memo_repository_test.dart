@@ -10,7 +10,7 @@ void main() {
 
   setUp(() async {
     await agent.setUp();
-    repository = MemoRepository(agent.isarTestAgent.isar);
+    repository = agent.memoRepository;
   });
 
   tearDown(() async {
