@@ -1,0 +1,79 @@
+name: Flutter CI
+
+# ワークフローの起動条件を定義する
+on:
+  # main ブランチに push された時
+  push:
+    branches:
+      - main
+      - develop
+
+# 複数のジョブを定義する
+# 各ジョブはそれぞれまったく別々の環境で実行される
+jobs:
+
+  # テストジョブの定義
+  flutter_test:
+
+    # ジョブの表示名
+    name: Flutter Test
+
+    # ジョブを実行するOS
+    runs-on: ubuntu-latest
+
+    # タイムアウト時間（分）
+    timeout-minutes: 15
+
+    # ジョブの手順
+    steps:
+
+      # ソースコードをチェックアウト
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # fvm のバージョンとチャネルを環境変数に設定する
+      - name: Check fvm
+        uses: kuhnroyal/flutter-fvm-config-action@v1
+
+      # Flutter SDK の設定
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+          cache-key: flutter
+          cache-path: ${{ runner.tool_cache }}/flutter
+
+      # flutter pub get を実行
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      # 静的解析を実行
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      # テストを実行
+      - name: Run Flutter Test
+        run: |
+          flutter test --no-test-assets --coverage --machine > test-report.log
+          sudo apt-get install -y lcov
+          lcov --remove coverage/lcov.info 'lib/collections/*' -o coverage/lcov.info
+
+      # テスト結果を GitHub Actions に表示する
+      - name: Report Test
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Flutter Test Report
+          path: test-report.log
+          reporter: flutter-json
+
+      # Codecov に結果を送信
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: true
+          flags: unittests
+          verbose: true
