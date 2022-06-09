@@ -14,6 +14,7 @@
 ## ポイント
 
 - Isar のバージョンは ^3.0.0-dev.0
-- テーブルのリレーション（CollectionのLink）
+- IsarLink を使用して Collection を Link （テーブルのリレーション）
 - JSON ファイルの初期データ（ Seed ）を DB に書き込み
 - 単体テスト／ Widget テストを実装
+- GitHub Actions の CI による自動テスト
