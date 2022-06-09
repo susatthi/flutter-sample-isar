@@ -1,16 +1,19 @@
 # flutter_sample_isar
 
-A new Flutter project.
+[Isar Database](https://pub.dev/packages/isar) のサンプルのメモアプリ
 
-## Getting Started
+![デモ](https://user-images.githubusercontent.com/13707135/172751546-4b8b5e0a-ab36-404e-adeb-63742da841fd.gif)
 
-This project is a starting point for a Flutter application.
+## アプリの概要
 
-A few resources to get you started if this is your first Flutter project:
+- メモを追加、編集、削除ができる
+- メモの一覧を表示できる
+- メモをカテゴリにわけて管理できる
+- カテゴリはあらかじめ用意しておく（仕事、プライベート、その他の３種類とする）
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## ポイント
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Isar のバージョンは ^3.0.0-dev.0
+- テーブルのリレーション（CollectionのLink）
+- JSON ファイルの初期データ（ Seed ）を DB に書き込み
+- 単体テスト／ Widget テストを実装
