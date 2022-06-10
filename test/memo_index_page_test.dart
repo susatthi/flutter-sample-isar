@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sample_isar/collections/category.dart';
 import 'package:flutter_sample_isar/collections/memo.dart';
 import 'package:flutter_sample_isar/memo_index_page.dart';
+import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_utils/test_agent.dart';
 
-class _MockApp extends StatelessWidget {
-  const _MockApp({
-    required this.agent,
+class MockApp extends StatelessWidget {
+  const MockApp({
+    super.key,
+    required this.memoRepository,
   });
 
-  final TestAgent agent;
+  final MemoRepository memoRepository;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: MemoIndexPage(
-        memoRepository: agent.memoRepository,
+        memoRepository: memoRepository,
       ),
     );
   }
@@ -25,16 +27,12 @@ class _MockApp extends StatelessWidget {
 
 void main() {
   final agent = TestAgent();
-  late Widget mockApp;
-
+  late MockApp mockApp;
   setUp(() async {
     await agent.setUp();
-    mockApp = _MockApp(agent: agent);
+    mockApp = MockApp(memoRepository: agent.getMemoRepository());
   });
-
-  tearDown(() async {
-    await agent.tearDown();
-  });
+  tearDown(agent.tearDown);
 
   group('MemoIndexPage', () {
     testWidgets('初期表示時はメモは0件のはず', (tester) async {
@@ -57,7 +55,7 @@ void main() {
         // メモを1件追加する
         const expectedCategoryName = 'プライベート';
         const expectedContent = 'memo content';
-        await _addMemo(
+        await addMemo(
           tester,
           categoryName: expectedCategoryName,
           content: expectedContent,
@@ -78,7 +76,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // メモが更新されるまで待つ
-        await agent.memoRepository.memoStream.first;
+        await state.widget.memoRepository.memoStream.first;
 
         // メモが0件になっているはず
         expect(state.memos.length, 0);
@@ -89,9 +87,11 @@ void main() {
         await tester.pumpWidget(mockApp);
 
         // メモを3件登録する
-        final categories = await agent.memoRepository.findCategories();
+        final state =
+            tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
+        final categories = await state.widget.memoRepository.findCategories();
         for (var i = 0; i < 3; i++) {
-          await _addMemo(
+          await addMemo(
             tester,
             categoryName: categories.first.name,
             content: '$i',
@@ -99,8 +99,6 @@ void main() {
         }
 
         // メモが3件になっているはず
-        final state =
-            tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
         expect(state.memos.length, 3);
 
         // 更新日時の降順で並んでいるはず
@@ -117,7 +115,7 @@ void main() {
         );
 
         // 一番最初に登録したメモを更新する
-        await _updateMemo(
+        await updateMemo(
           tester,
           memo: state.memos[2],
           categoryName: categories[1].name,
@@ -173,7 +171,7 @@ void main() {
 }
 
 /// メモを1件登録する
-Future<void> _addMemo(
+Future<void> addMemo(
   WidgetTester tester, {
   required String categoryName,
   required String content,
@@ -236,7 +234,7 @@ Future<void> _addMemo(
 }
 
 /// メモを1件更新する
-Future<void> _updateMemo(
+Future<void> updateMemo(
   WidgetTester tester, {
   required Memo memo,
   required String categoryName,

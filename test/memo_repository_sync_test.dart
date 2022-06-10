@@ -9,11 +9,11 @@ void main() {
   late MemoRepository repository;
   setUp(() async {
     await agent.setUp();
-    repository = agent.getMemoRepository();
+    repository = agent.getMemoRepository(sync: true);
   });
   tearDown(agent.tearDown);
 
-  group('MemoRepository', () {
+  group('MemoRepository(sync)', () {
     test('カテゴリを検索できるはず', () async {
       final categories = await repository.findCategories();
 
@@ -192,34 +192,6 @@ void main() {
       expect(receivedMemos1!.length, 1);
       expect(receivedMemos2, isNotNull);
       expect(receivedMemos2!.length, 1);
-    });
-    test('IsarがCloseされたあとでも問題ないはず', () async {
-      final categories = await repository.findCategories();
-      await repository.addMemo(
-        category: categories.first,
-        content: 'memo content',
-      );
-      final memos = await repository.findMemos();
-      final memo = memos.first;
-
-      // Closeする
-      await repository.isar.close(deleteFromDisk: true);
-
-      expect((await repository.findCategories()).isEmpty, true);
-      expect((await repository.findMemos()).isEmpty, true);
-
-      await repository.addMemo(
-        category: categories.first,
-        content: '',
-      );
-
-      await repository.updateMemo(
-        memo: memo,
-        category: categories.first,
-        content: '',
-      );
-
-      await repository.deleteMemo(memo);
     });
   });
 }

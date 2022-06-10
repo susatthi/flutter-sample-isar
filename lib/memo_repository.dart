@@ -9,15 +9,27 @@ import 'collections/memo.dart';
 ///
 /// メモに関する操作はこのクラスを経由して行う
 class MemoRepository {
-  MemoRepository(this.isar) {
+  MemoRepository(
+    this.isar, {
+    this.sync = false,
+  }) {
     // メモ一覧の変化を監視してストリームに流す
     isar.memos.watchLazy().listen((_) async {
+      if (!isar.isOpen) {
+        return;
+      }
+      if (_memoStreamController.isClosed) {
+        return;
+      }
       _memoStreamController.sink.add(await findMemos());
     });
   }
 
   /// Isarインスタンス
   final Isar isar;
+
+  /// 非同期かどうか
+  final bool sync;
 
   /// メモ一覧を監視したい場合はmemoStreamをlistenしてもらう
   final _memoStreamController = StreamController<List<Memo>>.broadcast();
@@ -29,15 +41,35 @@ class MemoRepository {
   }
 
   /// カテゴリを検索する
-  Future<List<Category>> findCategories() async {
+  FutureOr<List<Category>> findCategories() async {
+    if (!isar.isOpen) {
+      return [];
+    }
+
     // デフォルトのソートはidの昇順
-    return isar.categorys.where().findAll();
+    final builder = isar.categorys.where();
+    return sync ? builder.findAllSync() : await builder.findAll();
   }
 
   /// メモを検索する
-  Future<List<Memo>> findMemos() async {
+  FutureOr<List<Memo>> findMemos() async {
+    if (!isar.isOpen) {
+      return [];
+    }
+
     // 更新日時の降順で全件返す
-    final memos = await isar.memos.where().sortByUpdatedAtDesc().findAll();
+    final builder = isar.memos.where().sortByUpdatedAtDesc();
+
+    if (sync) {
+      final memos = builder.findAllSync();
+      // IsarLinkでリンクされているカテゴリを読み込む必要がある
+      for (final memo in memos) {
+        memo.category.loadSync();
+      }
+      return memos;
+    }
+
+    final memos = await builder.findAll();
 
     // IsarLinkでリンクされているカテゴリを読み込む必要がある
     for (final memo in memos) {
@@ -47,45 +79,80 @@ class MemoRepository {
   }
 
   /// メモを追加する
-  Future<void> addMemo({
+  FutureOr<void> addMemo({
     required Category category,
     required String content,
   }) {
+    if (!isar.isOpen) {
+      return Future<void>(() {});
+    }
+
     final now = DateTime.now();
     final memo = Memo()
       ..category.value = category
       ..content = content
       ..createdAt = now
       ..updatedAt = now;
-    return isar.writeTxn((isar) async {
-      await isar.memos.put(memo);
+    if (sync) {
+      isar.writeTxnSync<void>((isar) {
+        isar.memos.putSync(memo);
 
-      // IsarLinkでリンクされているカテゴリを保存する必要がある
-      await memo.category.save();
-    });
+        // IsarLinkでリンクされているカテゴリを保存する必要がある
+        memo.category.saveSync();
+      });
+    } else {
+      return isar.writeTxn((isar) async {
+        await isar.memos.put(memo);
+
+        // IsarLinkでリンクされているカテゴリを保存する必要がある
+        await memo.category.save();
+      });
+    }
   }
 
   /// メモを更新する
-  Future<void> updateMemo({
+  FutureOr<void> updateMemo({
     required Memo memo,
     required Category category,
     required String content,
   }) {
+    if (!isar.isOpen) {
+      return Future<void>(() {});
+    }
+
     final now = DateTime.now();
     memo
       ..category.value = category
       ..content = content
       ..updatedAt = now;
-    return isar.writeTxn((isar) async {
-      await isar.memos.put(memo);
+    if (sync) {
+      isar.writeTxnSync<void>((isar) {
+        isar.memos.putSync(memo);
 
-      // IsarLinkでリンクされているカテゴリを保存する必要がある
-      await memo.category.save();
-    });
+        // IsarLinkでリンクされているカテゴリを保存する必要がある
+        memo.category.saveSync();
+      });
+    } else {
+      return isar.writeTxn((isar) async {
+        await isar.memos.put(memo);
+
+        // IsarLinkでリンクされているカテゴリを保存する必要がある
+        await memo.category.save();
+      });
+    }
   }
 
   /// メモを削除する
-  Future<bool> deleteMemo(Memo memo) async {
+  FutureOr<bool> deleteMemo(Memo memo) async {
+    if (!isar.isOpen) {
+      return false;
+    }
+
+    if (sync) {
+      return isar.writeTxnSync((isar) {
+        return isar.memos.deleteSync(memo.id);
+      });
+    }
     return isar.writeTxn((isar) async {
       return isar.memos.delete(memo.id);
     });

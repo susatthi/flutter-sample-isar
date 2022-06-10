@@ -40,6 +40,10 @@ class MemoIndexPageState extends State<MemoIndexPage> {
 
   /// メモ一覧画面を更新する
   void _refresh(List<Memo> memos) {
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       this.memos
         ..clear()

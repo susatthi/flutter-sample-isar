@@ -10,13 +10,13 @@ void main() {
   setUp(() async {
     await agent.setUp();
     app = App(
-      memoRepository: agent.getMemoRepository(),
+      memoRepository: agent.getMemoRepository(sync: true),
     );
   });
 
   tearDown(agent.tearDown);
 
-  group('App', () {
+  group('App(sync)', () {
     testWidgets('表示するとメモ一覧画面が表示されるはず', (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(app);

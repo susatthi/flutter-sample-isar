@@ -14,24 +14,34 @@ import 'package:path/path.dart' as path;
 
 /// テストエージェント
 class TestAgent {
-  final isarTestAgent = IsarTestAgent();
-  late MemoRepository memoRepository;
+  final _isarTestAgent = IsarTestAgent();
+  MemoRepository? _memoRepository;
 
   /// 開始処理
   Future<void> setUp() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
     // Isarテストエージェントのセットアップ
-    await isarTestAgent.setUp();
-
-    // メモリポジトリの生成
-    memoRepository = MemoRepository(isarTestAgent.isar);
+    await _isarTestAgent.setUp();
+    await _isarTestAgent.setUpDB();
   }
 
   /// 終了処理
   Future<void> tearDown() async {
-    memoRepository.dispose();
-    await isarTestAgent.tearDown();
+    _memoRepository?.dispose();
+    _memoRepository = null;
+    await _isarTestAgent.tearDown();
+  }
+
+  /// メモリポジトリを返す
+  MemoRepository getMemoRepository({
+    bool sync = false,
+  }) {
+    _memoRepository ??= MemoRepository(
+      _isarTestAgent.isar,
+      sync: sync,
+    );
+    return _memoRepository!;
   }
 }
 
@@ -86,20 +96,27 @@ class IsarTestAgent {
       ],
       directory: testDir.dir.path,
     );
-
-    // カテゴリの初期データ書き込み
-    await isar.writeTxn((isar) async {
-      await isar.categorys.putAll(
-        ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
-      );
-    });
   }
 
   /// 終了する
   Future<void> tearDown() async {
-    await _isar?.close(deleteFromDisk: true);
+    if (_isar?.isOpen == true) {
+      await _isar?.close(deleteFromDisk: true);
+    }
     _isar = null;
     testDir.close();
+  }
+
+  /// DBをセットアップする
+  Future<void> setUpDB() async {
+    return isar.writeTxn((isar) async {
+      // 全データ削除
+      await isar.clear();
+      // カテゴリの初期データ書き込み
+      await isar.categorys.putAll(
+        ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
+      );
+    });
   }
 }
 

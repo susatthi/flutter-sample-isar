@@ -39,8 +39,14 @@ Future<void> main() async {
     // force: true,
   );
 
+  // syncプロパティをtrueにするとDB操作を同期的に処理する
   runApp(
-    App(memoRepository: MemoRepository(isar)),
+    App(
+      memoRepository: MemoRepository(
+        isar,
+        // sync: true,
+      ),
+    ),
   );
 }
 
