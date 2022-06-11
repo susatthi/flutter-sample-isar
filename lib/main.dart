@@ -36,7 +36,7 @@ Future<void> main() async {
   // forceプロパティをtrueにすると既存データを全削除して初期データを書き込み直す
   await _writeSeedIfNeed(
     isar,
-    // force: true,
+    force: true,
   );
 
   // syncプロパティをtrueにするとDB操作を同期的に処理する
@@ -58,10 +58,7 @@ Future<void> _writeSeedIfNeed(
   if (force) {
     // 強制的にデータを全削除する
     await isar.writeTxn((isar) async {
-      final categories = await isar.categorys.where().findAll();
-      await isar.categorys.deleteAll(categories.map((e) => e.id).toList());
-      final memos = await isar.memos.where().findAll();
-      await isar.memos.deleteAll(memos.map((e) => e.id).toList());
+      await isar.clear();
     });
   }
 
