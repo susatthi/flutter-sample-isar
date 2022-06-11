@@ -36,7 +36,7 @@ Future<void> main() async {
   // forceプロパティをtrueにすると既存データを全削除して初期データを書き込み直す
   await _writeSeedIfNeed(
     isar,
-    force: true,
+    // force: true,
   );
 
   // syncプロパティをtrueにするとDB操作を同期的に処理する
