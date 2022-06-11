@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'collections/category.dart';
@@ -29,13 +27,13 @@ class MemoIndexPageState extends State<MemoIndexPage> {
   void initState() {
     super.initState();
 
-    // メモ一覧を取得して画面を更新する
-    Future(() async {
-      _refresh(await widget.memoRepository.findMemos());
-    });
-
     /// メモ一覧を監視して変化があれば画面を更新する
     widget.memoRepository.memoStream.listen(_refresh);
+
+    // メモ一覧を取得して画面を更新する
+    () async {
+      _refresh(await widget.memoRepository.findMemos());
+    }();
   }
 
   /// メモ一覧画面を更新する
@@ -130,7 +128,7 @@ class MemoUpsertDialogState extends State<MemoUpsertDialog> {
   void initState() {
     super.initState();
 
-    Future(() async {
+    () async {
       // カテゴリ一覧を取得する
       categories.addAll(await widget.memoRepository.findCategories());
 
@@ -143,7 +141,7 @@ class MemoUpsertDialogState extends State<MemoUpsertDialog> {
 
       // 再描画する
       setState(() {});
-    });
+    }();
   }
 
   @override

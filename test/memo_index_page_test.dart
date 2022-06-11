@@ -7,9 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'test_utils/test_agent.dart';
 
-class MockApp extends StatelessWidget {
-  const MockApp({
-    super.key,
+class _MockApp extends StatelessWidget {
+  const _MockApp({
     required this.memoRepository,
   });
 
@@ -27,10 +26,10 @@ class MockApp extends StatelessWidget {
 
 void main() {
   final agent = TestAgent();
-  late MockApp mockApp;
+  late _MockApp mockApp;
   setUp(() async {
     await agent.setUp();
-    mockApp = MockApp(memoRepository: agent.getMemoRepository());
+    mockApp = _MockApp(memoRepository: agent.getMemoRepository());
   });
   tearDown(agent.tearDown);
 
@@ -55,7 +54,7 @@ void main() {
         // メモを1件追加する
         const expectedCategoryName = 'プライベート';
         const expectedContent = 'memo content';
-        await addMemo(
+        await _addMemo(
           tester,
           categoryName: expectedCategoryName,
           content: expectedContent,
@@ -91,7 +90,7 @@ void main() {
             tester.state(find.byType(MemoIndexPage)) as MemoIndexPageState;
         final categories = await state.widget.memoRepository.findCategories();
         for (var i = 0; i < 3; i++) {
-          await addMemo(
+          await _addMemo(
             tester,
             categoryName: categories.first.name,
             content: '$i',
@@ -115,7 +114,7 @@ void main() {
         );
 
         // 一番最初に登録したメモを更新する
-        await updateMemo(
+        await _updateMemo(
           tester,
           memo: state.memos[2],
           categoryName: categories[1].name,
@@ -171,7 +170,7 @@ void main() {
 }
 
 /// メモを1件登録する
-Future<void> addMemo(
+Future<void> _addMemo(
   WidgetTester tester, {
   required String categoryName,
   required String content,
@@ -234,7 +233,7 @@ Future<void> addMemo(
 }
 
 /// メモを1件更新する
-Future<void> updateMemo(
+Future<void> _updateMemo(
   WidgetTester tester, {
   required Memo memo,
   required String categoryName,
