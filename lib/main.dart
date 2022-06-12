@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_element
 
 import 'dart:async';
 import 'dart:convert';
@@ -111,7 +111,7 @@ Future<void> _writeSeedIfNeed(
 /// 計測実験
 Future<void> _experiments(Isar isar) async {
   // 実験で追加するメモの件数
-  const count = 10000;
+  const count = 1000000;
 
   final categories = await isar.categorys.where().findAll();
   final memos = <Memo>[];
