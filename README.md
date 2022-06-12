@@ -8,17 +8,22 @@
 
 ![デモ](https://user-images.githubusercontent.com/13707135/172751546-4b8b5e0a-ab36-404e-adeb-63742da841fd.gif)
 
-## アプリの概要
+## アーキテクチャ図
 
-- メモを追加、編集、削除ができる
-- メモの一覧を表示できる
+![arch](https://user-images.githubusercontent.com/13707135/173222719-16ece245-e0f9-46e3-99d5-6ba2c178d81d.png)
+
+
+## アプリの要件
+
+- メモの一覧を更新日時の降順で表示する
+- メモを登録、更新、削除ができる
 - メモをカテゴリにわけて管理できる
 - カテゴリはあらかじめ用意しておく（仕事、プライベート、その他の３種類とする）
 
 ## ポイント
 
 - Isar のバージョンは ^3.0.0-dev.0
-- IsarLink を使用して Collection を Link （テーブルのリレーション）
+- IsarLink を使用して Collection を Link するサンプルあり
 - JSON ファイルの初期データ（ Seed ）を DB に書き込み
 - 単体テスト／ Widget テストを実装
 - GitHub Actions の CI による自動テスト
