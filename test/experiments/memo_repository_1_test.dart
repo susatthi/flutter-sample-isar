@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 
@@ -8,6 +9,7 @@ import 'package:flutter_sample_isar/collections/memo.dart';
 import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
+import 'package:isar/src/version.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -24,7 +26,26 @@ void main() {
     final evacuation = HttpOverrides.current;
     HttpOverrides.global = null;
 
+    final isarLibraryDir = Directory(
+      path.join(
+        Directory.current.path,
+        '.dart_tool',
+        'test',
+        'isar_core_library',
+        isarCoreVersion,
+      ),
+    );
+    if (!isarLibraryDir.existsSync()) {
+      await isarLibraryDir.create(recursive: true);
+    }
+
     await Isar.initializeIsarCore(
+      libraries: <Abi, String>{
+        Abi.current(): path.join(
+          isarLibraryDir.path,
+          Abi.current().localName,
+        ),
+      },
       download: true,
     );
 
@@ -39,14 +60,15 @@ void main() {
       ],
       directory: dir.path,
     );
-    repository = MemoRepository(isar);
 
+    // カテゴリの初期値を書き込む
     await isar.writeTxn((isar) async {
       await isar.clear();
       await isar.categorys.putAll(
         ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
       );
     });
+    repository = MemoRepository(isar);
   });
 
   tearDown(() async {
@@ -60,6 +82,31 @@ void main() {
       expect(categories.length, 3);
     });
   });
+}
+
+/// Copy from 'package:isar/src/native/isar_core.dart';
+extension on Abi {
+  String get localName {
+    switch (Abi.current()) {
+      case Abi.androidArm:
+      case Abi.androidArm64:
+      case Abi.androidIA32:
+      case Abi.androidX64:
+        return 'libisar.so';
+      case Abi.macosArm64:
+      case Abi.macosX64:
+        return 'libisar.dylib';
+      case Abi.linuxX64:
+        return 'libisar.so';
+      case Abi.windowsArm64:
+      case Abi.windowsX64:
+        return 'isar.dll';
+      default:
+        // ignore: only_throw_errors
+        throw 'Unsupported processor architecture "${Abi.current()}".'
+            'Please open an issue on GitHub to request it.';
+    }
+  }
 }
 
 /// モック版のPathProviderPlatform
