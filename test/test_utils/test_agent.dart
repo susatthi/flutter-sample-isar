@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
@@ -7,10 +9,12 @@ import 'package:flutter_sample_isar/collections/memo.dart';
 import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
-// ignore: unused_import
 import 'package:isar/src/version.dart';
-// ignore: depend_on_referenced_packages
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 /// テストエージェント
 class TestAgent {
@@ -21,7 +25,7 @@ class TestAgent {
   Future<void> setUp() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Isarテストエージェントのセットアップ
+    // Isarテストエージェントの開始処理
     await _isarTestAgent.setUp();
     await _isarTestAgent.setUpDB();
   }
@@ -37,27 +41,27 @@ class TestAgent {
   MemoRepository getMemoRepository({
     bool sync = false,
   }) {
-    _memoRepository ??= MemoRepository(
+    return _memoRepository ??= MemoRepository(
       _isarTestAgent.isar,
       sync: sync,
     );
-    return _memoRepository!;
   }
 }
 
 /// Isar のテストエージェント
 class IsarTestAgent {
-  final testDir = TestDirectory();
   Isar? _isar;
   Isar get isar => _isar!;
 
-  /// セットアップする
+  /// 開始処理
   Future<void> setUp() async {
-    await testDir.open(prefix: 'isar');
+    // テスト時はインターネットが遮断されてしまうので一時的にインターネットに出られるようにする
+    final evacuation = HttpOverrides.current;
+    HttpOverrides.global = null;
 
     // https://github.com/isar/isar#unit-tests によるとテスト時にはIsarのライブラリを
     // ダウンロードする必要があるため、./dart_tool/ 配下にIsarコアバージョン毎にダウンロード
-    // 用のディレクトリを用意する。
+    // 用のディレクトリを用意する。テスト毎にライブラリをダウンロードするのは時間がかかるので削除しない。
     final isarLibraryDir = Directory(
       path.join(
         Directory.current.path,
@@ -71,10 +75,6 @@ class IsarTestAgent {
       await isarLibraryDir.create(recursive: true);
     }
 
-    // テスト時はインターネットが遮断されてしまうので一時的にインターネットに出られるようにする
-    final evacuation = HttpOverrides.current;
-    HttpOverrides.global = null;
-
     // すでにダウンロード済みの場合はダウンロードをスキップするのでライブラリファイルの
     // 存在チェックは不要
     await Isar.initializeIsarCore(
@@ -86,33 +86,38 @@ class IsarTestAgent {
       },
       download: true,
     );
+
     HttpOverrides.global = evacuation;
 
+    PathProviderPlatform.instance = MockPathProviderPlatform();
+
     // Isarインスタンスを作成する
+    final dir = await getApplicationSupportDirectory();
     _isar = await Isar.open(
       schemas: [
         CategorySchema,
         MemoSchema,
       ],
-      directory: testDir.dir.path,
+      directory: dir.path,
     );
   }
 
-  /// 終了する
+  /// 終了処理
   Future<void> tearDown() async {
     if (_isar?.isOpen == true) {
       await _isar?.close(deleteFromDisk: true);
     }
     _isar = null;
-    testDir.close();
+    final dir = await getApplicationSupportDirectory();
+    if (dir.existsSync()) {
+      await dir.delete(recursive: true);
+    }
   }
 
   /// DBをセットアップする
   Future<void> setUpDB() async {
+    // カテゴリの初期値を書き込む
     return isar.writeTxn((isar) async {
-      // 全データ削除
-      await isar.clear();
-      // カテゴリの初期データ書き込み
       await isar.categorys.putAll(
         ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
       );
@@ -145,49 +150,22 @@ extension on Abi {
   }
 }
 
-class TestDirectory {
-  /// テストルートディレクトリ
-  static final rootDir = Directory(
-    path.join(
-      Directory.current.path,
-      '.dart_tool',
-      'test',
-    ),
-  );
+/// モック版のPathProviderPlatform
+class MockPathProviderPlatform extends Mock
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  // 9桁のランダムな数字を生成する（例：355017887）
+  final name = Random().nextInt(pow(2, 32) as int);
 
-  /// テストディレクトリ
-  Directory? _dir;
-  Directory get dir => _dir!;
-
-  /// テストディレクトリを開く
-  Future<void> open({
-    String? prefix,
-  }) async {
-    if (_dir != null) {
-      return;
-    }
-
-    final name = Random().nextInt(pow(2, 32) as int);
-    final effectivePrefix = prefix ?? 'tmp';
-    final dir = Directory(path.join(rootDir.path, '${effectivePrefix}_$name'));
-
-    if (dir.existsSync()) {
-      await dir.delete(recursive: true);
-    }
-    await dir.create(recursive: true);
-    _dir = dir;
-  }
-
-  /// テストディレクトリを閉じる
-  void close() {
-    final dir = _dir;
-    if (dir == null) {
-      return;
-    }
-
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
-      _dir = null;
-    }
+  @override
+  Future<String> getApplicationSupportPath() async {
+    return Directory(
+      path.join(
+        Directory.current.path,
+        '.dart_tool',
+        'test',
+        'application_support_$name',
+      ),
+    ).path;
   }
 }
