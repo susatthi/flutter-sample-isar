@@ -21,9 +21,15 @@ void main() {
   late MemoRepository repository;
 
   setUp(() async {
+    final evacuation = HttpOverrides.current;
+    HttpOverrides.global = null;
+
     await Isar.initializeIsarCore(
       download: true,
     );
+
+    HttpOverrides.global = evacuation;
+
     PathProviderPlatform.instance = MockPathProviderPlatform();
     final dir = await getApplicationSupportDirectory();
     isar = await Isar.open(
@@ -34,6 +40,13 @@ void main() {
       directory: dir.path,
     );
     repository = MemoRepository(isar);
+
+    await isar.writeTxn((isar) async {
+      await isar.clear();
+      await isar.categorys.putAll(
+        ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
+      );
+    });
   });
 
   tearDown(() async {
