@@ -21,6 +21,9 @@ void main() {
   late MemoRepository repository;
 
   setUp(() async {
+    await Isar.initializeIsarCore(
+      download: true,
+    );
     PathProviderPlatform.instance = MockPathProviderPlatform();
     final dir = await getApplicationSupportDirectory();
     isar = await Isar.open(
