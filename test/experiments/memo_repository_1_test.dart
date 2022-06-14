@@ -74,6 +74,10 @@ void main() {
   tearDown(() async {
     await isar.close(deleteFromDisk: true);
     repository.dispose();
+    final dir = await getApplicationSupportDirectory();
+    if (dir.existsSync()) {
+      await dir.delete(recursive: true);
+    }
   });
 
   group('MemoRepository', () {
@@ -113,10 +117,11 @@ extension on Abi {
 class MockPathProviderPlatform extends Mock
     with MockPlatformInterfaceMixin
     implements PathProviderPlatform {
+  // 9桁のランダムな数字を生成する（例：355017887）
+  final name = Random().nextInt(pow(2, 32) as int);
+
   @override
   Future<String> getApplicationSupportPath() async {
-    // 9桁のランダムな数字を生成する（例：355017887）
-    final name = Random().nextInt(pow(2, 32) as int);
     return Directory(
       path.join(
         Directory.current.path,
