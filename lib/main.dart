@@ -26,12 +26,11 @@ Future<void> main() async {
   }
 
   final isar = await Isar.open(
-    schemas: [
+    [
       CategorySchema,
       MemoSchema,
     ],
     directory: path,
-    inspector: true,
   );
 
   // 初期データ書き込み
@@ -61,7 +60,7 @@ Future<void> _writeSeedIfNeed(
 }) async {
   if (force) {
     // 強制的にデータを全削除する
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       await isar.clear();
     });
   }
@@ -72,7 +71,7 @@ Future<void> _writeSeedIfNeed(
   }
 
   // 初期データを書き込む
-  await isar.writeTxn((isar) async {
+  await isar.writeTxn(() async {
     // カテゴリの初期データ
     await isar.categorys.putAll(
       ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
@@ -127,7 +126,7 @@ Future<void> _experiments(Isar isar) async {
 
   await _clearMemos(isar);
   await _measure('put', () async {
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       for (final memo in memos) {
         await isar.memos.put(memo);
         await memo.category.save();
@@ -137,7 +136,7 @@ Future<void> _experiments(Isar isar) async {
 
   await _clearMemos(isar);
   await _measure('putAll', () async {
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       await isar.memos.putAll(memos);
       final saveCategories = memos.map((memo) => memo.category).toList();
       for (final saveCategory in saveCategories) {
@@ -148,7 +147,7 @@ Future<void> _experiments(Isar isar) async {
 
   await _clearMemos(isar);
   await _measure('putSync', () {
-    isar.writeTxnSync((isar) {
+    isar.writeTxnSync(() {
       for (final memo in memos) {
         isar.memos.putSync(memo);
         memo.category.saveSync();
@@ -158,7 +157,7 @@ Future<void> _experiments(Isar isar) async {
 
   await _clearMemos(isar);
   await _measure('putAllSync', () {
-    isar.writeTxnSync((isar) {
+    isar.writeTxnSync(() {
       isar.memos.putAllSync(memos);
       final saveCategories = memos.map((memo) => memo.category).toList();
       for (final saveCategory in saveCategories) {
@@ -180,7 +179,7 @@ Future<void> _measure(
 }
 
 Future<void> _clearMemos(Isar isar) async {
-  await isar.writeTxn((isar) async {
+  await isar.writeTxn(() async {
     await isar.memos.clear();
   });
 }

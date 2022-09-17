@@ -9,7 +9,6 @@ import 'package:flutter_sample_isar/collections/memo.dart';
 import 'package:flutter_sample_isar/memo_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
-import 'package:isar/src/version.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -68,7 +67,7 @@ class IsarTestAgent {
         '.dart_tool',
         'test',
         'isar_core_library',
-        isarCoreVersion,
+        Isar.version,
       ),
     );
     if (!isarLibraryDir.existsSync()) {
@@ -93,8 +92,11 @@ class IsarTestAgent {
 
     // Isarインスタンスを作成する
     final dir = await getApplicationSupportDirectory();
+    if (!dir.existsSync()) {
+      await dir.create(recursive: true);
+    }
     _isar = await Isar.open(
-      schemas: [
+      [
         CategorySchema,
         MemoSchema,
       ],
@@ -117,7 +119,7 @@ class IsarTestAgent {
   /// DBをセットアップする
   Future<void> setUpDB() async {
     // カテゴリの初期値を書き込む
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       await isar.categorys.putAll(
         ['仕事', 'プライベート', 'その他'].map((name) => Category()..name = name).toList(),
       );
