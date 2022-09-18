@@ -7,7 +7,7 @@ part 'memo.g.dart';
 @Collection()
 class Memo {
   /// 自動インクリメントする ID
-  int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
 
   /// カテゴリ
   final category = IsarLink<Category>();

@@ -94,14 +94,14 @@ class MemoRepository {
       ..createdAt = now
       ..updatedAt = now;
     if (sync) {
-      isar.writeTxnSync<void>((isar) {
+      isar.writeTxnSync<void>(() {
         isar.memos.putSync(memo);
 
         // IsarLinkでリンクされているカテゴリを保存する必要がある
         memo.category.saveSync();
       });
     } else {
-      return isar.writeTxn((isar) async {
+      return isar.writeTxn(() async {
         await isar.memos.put(memo);
 
         // IsarLinkでリンクされているカテゴリを保存する必要がある
@@ -126,14 +126,14 @@ class MemoRepository {
       ..content = content
       ..updatedAt = now;
     if (sync) {
-      isar.writeTxnSync<void>((isar) {
+      isar.writeTxnSync<void>(() {
         isar.memos.putSync(memo);
 
         // IsarLinkでリンクされているカテゴリを保存する必要がある
         memo.category.saveSync();
       });
     } else {
-      return isar.writeTxn((isar) async {
+      return isar.writeTxn(() async {
         await isar.memos.put(memo);
 
         // IsarLinkでリンクされているカテゴリを保存する必要がある
@@ -149,11 +149,11 @@ class MemoRepository {
     }
 
     if (sync) {
-      return isar.writeTxnSync((isar) {
+      return isar.writeTxnSync(() {
         return isar.memos.deleteSync(memo.id);
       });
     }
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.memos.delete(memo.id);
     });
   }
