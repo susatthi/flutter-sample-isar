@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  isar: ^3.0.0-dev.15
-  isar_flutter_libs: ^3.0.0-dev.15
+  isar: ^3.0.0
+  isar_flutter_libs: ^3.0.0
   path_provider: ^2.0.11
 
 dev_dependencies:
@@ -19,7 +19,7 @@ dev_dependencies:
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
-  isar_generator: ^3.0.0-dev.15
+  isar_generator: ^3.0.0
   mocktail: ^0.3.0
   pedantic_mono: ^1.20.0
 

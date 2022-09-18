@@ -65,7 +65,7 @@ const MemoSchema = CollectionSchema(
   getId: _memoGetId,
   getLinks: _memoGetLinks,
   attach: _memoAttach,
-  version: '3.0.0-dev.15',
+  version: '3.0.0',
 );
 
 int _memoEstimateSize(
