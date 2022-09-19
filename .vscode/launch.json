@@ -2,13 +2,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "app-debug",
+      "name": "mobile-debug",
       "program": "lib/main.dart",
       "request": "launch",
       "type": "dart",
       "args": [
         "--debug",
       ]
-    }
+    },
+    {
+      "name": "web-debug",
+      "program": "lib/main.dart",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--debug",
+        "--web-renderer",
+        "html",
+        "--web-hostname",
+        "localhost",
+        "--web-port",
+        "5000",
+      ]
+    },
   ]
 }
